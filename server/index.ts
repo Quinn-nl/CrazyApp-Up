@@ -1,8 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { timeout } from "./middleware";
 
 const app = express();
+app.use(compression());
+app.use(timeout(30000)); // 30 second timeout
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -79,11 +83,29 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
+  const httpServer = server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
   });
+
+  // Graceful shutdown
+  const shutdown = () => {
+    log('Shutting down gracefully...');
+    httpServer.close(() => {
+      log('Server closed');
+      process.exit(0);
+    });
+
+    // Force close after 10s
+    setTimeout(() => {
+      log('Forcing shutdown');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 })();

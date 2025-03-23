@@ -19,7 +19,7 @@ import {
   Database,
   FileJson,
   LayoutGrid,
-  PlugZap
+  Key
 } from "lucide-react";
 import { 
   Dialog, 
@@ -341,7 +341,7 @@ export default function Integrations() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <PlugZap className="mr-2 h-5 w-5" />
+                  <Key className="mr-2 h-5 w-5" />
                   API Keys
                 </CardTitle>
                 <CardDescription>

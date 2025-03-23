@@ -4,12 +4,14 @@ import { ZodSchema } from "zod";
 export const validateRequest = (schema: ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.parseAsync(req.body);
+      const parsed = await schema.parseAsync(req.body);
+      req.body = parsed; // Replace with validated data
       next();
     } catch (error) {
       res.status(400).json({ 
         message: "Validation failed",
-        errors: error.errors 
+        errors: error.errors,
+        receivedData: req.body 
       });
     }
   };

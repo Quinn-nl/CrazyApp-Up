@@ -82,7 +82,22 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
+  const tryPort = async (port: number): Promise<number> => {
+    try {
+      await new Promise((resolve, reject) => {
+        const testServer = server.listen({ port, host: "0.0.0.0" }, () => {
+          testServer.close();
+          resolve(port);
+        });
+        testServer.on('error', reject);
+      });
+      return port;
+    } catch {
+      return tryPort(port + 1);
+    }
+  };
+
+  const port = await tryPort(5000);
   const httpServer = server.listen({
     port,
     host: "0.0.0.0",

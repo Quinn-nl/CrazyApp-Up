@@ -29,7 +29,7 @@ export function Sidebar({ className }: SidebarProps) {
     .toUpperCase();
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/compliance", label: "Compliance Automation", icon: FileText },
     { href: "/documents", label: "Document Management", icon: Folder },
     { href: "/audit", label: "Audit & Risk Management", icon: ClipboardList },

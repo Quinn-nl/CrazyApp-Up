@@ -15,11 +15,13 @@ import AuditRisk from "@/pages/audit-risk";
 import Integrations from "@/pages/integrations";
 import Settings from "@/pages/settings";
 import FrameworkDetails from "@/pages/framework-details";
+import HomePage from "@/pages/home-page";
 
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={Dashboard} />
+      <Route path="/" component={HomePage} />
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/documents" component={DocumentManagement} />
       <ProtectedRoute path="/compliance" component={ComplianceAutomation} />
       <ProtectedRoute path="/audit" component={AuditRisk} />

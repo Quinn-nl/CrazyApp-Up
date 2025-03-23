@@ -30,12 +30,12 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "compliancemate-secret-key",
+    secret: process.env.SESSION_SECRET || "compliance-mate-secret-key",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     }
   };
 
@@ -67,9 +67,34 @@ export function setupAuth(app: Express) {
       return res.status(400).send("Username already exists");
     }
 
+    const existingEmail = await storage.getUserByEmail(req.body.email);
+    if (existingEmail) {
+      return res.status(400).send("Email already exists");
+    }
+
     const user = await storage.createUser({
       ...req.body,
       password: await hashPassword(req.body.password),
+    });
+
+    // Initialize default compliance statuses for the user
+    const regulations = await storage.getAllRegulations();
+    for (const regulation of regulations) {
+      await storage.createComplianceStatus({
+        userId: user.id,
+        regulationId: regulation.id,
+        score: Math.floor(Math.random() * 100), // Initialize with random score
+        status: determineStatus(Math.floor(Math.random() * 100)), // Based on score
+        actionsNeeded: Math.floor(Math.random() * 10), // Random number of actions needed
+      });
+    }
+
+    // Log user registration activity
+    await storage.logActivity({
+      userId: user.id,
+      action: "User Registration",
+      details: `${user.fullName} registered with ${user.companyName}`,
+      activityType: "completed",
     });
 
     req.login(user, (err) => {
@@ -93,4 +118,11 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
+}
+
+// Helper function to determine compliance status based on score
+function determineStatus(score: number): string {
+  if (score >= 80) return "compliant";
+  if (score >= 50) return "partial";
+  return "critical";
 }

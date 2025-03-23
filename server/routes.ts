@@ -1,184 +1,338 @@
-import { Express } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { z } from "zod";
+import { 
+  insertDocumentSchema, 
+  insertDeadlineSchema, 
+  insertActivityLogSchema,
+  insertComplianceStatusSchema
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
-  // Get available compliance frameworks
-  app.get("/api/compliance/frameworks", (req, res) => {
-    const frameworks = [
-      { id: "gdpr", name: "GDPR", description: "General Data Protection Regulation" },
-      { id: "ccpa", name: "CCPA", description: "California Consumer Privacy Act" },
-      { id: "hipaa", name: "HIPAA", description: "Health Insurance Portability and Accountability Act" }
-    ];
-    res.json(frameworks);
+  // Initialize default regulations if not exist
+  await initializeDefaultRegulations();
+
+  // Dashboard data route
+  app.get("/api/dashboard", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const complianceStatus = await storage.getComplianceStatusByUserId(userId);
+      const recentDocuments = await storage.getRecentDocumentsByUserId(userId, 3);
+      const upcomingDeadlines = await storage.getUpcomingDeadlinesByUserId(userId, 3);
+      const recentActivities = await storage.getRecentActivitiesByUserId(userId, 3);
+      const overallScore = calculateOverallScore(complianceStatus);
+
+      res.json({
+        overallScore,
+        complianceStatus,
+        recentDocuments,
+        upcomingDeadlines,
+        recentActivities,
+        pendingTasks: upcomingDeadlines.length,
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.status(500).send("Error fetching dashboard data");
+    }
   });
 
-  // Get compliance score for a user
-  app.get("/api/compliance/score", (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    const scores = {
-      gdpr: {
-        score: 85,
-        change: 12,
-        issues: 4,
-        metRequirements: 17,
-        totalRequirements: 20
-      },
-      ccpa: {
-        score: 65,
-        change: 5,
-        issues: 7,
-        metRequirements: 13,
-        totalRequirements: 20
-      },
-      hipaa: {
-        score: 40,
-        change: 0,
-        issues: 12,
-        metRequirements: 8,
-        totalRequirements: 20
-      }
-    };
-    
-    res.json(scores);
+  // Documents routes
+  app.get("/api/documents", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const documents = await storage.getDocumentsByUserId(userId);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).send("Error fetching documents");
+    }
   });
 
-  // Get deadlines for a user
-  app.get("/api/deadlines", (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    const deadlines = [
-      {
-        id: 1,
-        title: 'GDPR Cookie Policy Update',
-        due: 'Due in 5 days (May 15, 2023)',
-        status: 'upcoming',
-        type: 'event'
-      },
-      {
-        id: 2,
-        title: 'CCPA Annual Data Audit',
-        due: 'Overdue by 2 days',
-        status: 'overdue',
-        type: 'priority'
-      },
-      {
-        id: 3,
-        title: 'HIPAA Security Risk Assessment',
-        due: 'Due in 14 days (May 24, 2023)',
-        status: 'normal',
-        type: 'assignment'
-      },
-      {
-        id: 4,
-        title: 'Quarterly Compliance Review',
-        due: 'Due in 21 days (May 31, 2023)',
-        status: 'normal',
-        type: 'security'
-      }
-    ];
-    
-    res.json(deadlines);
+  app.post("/api/documents", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const validatedData = insertDocumentSchema.parse({ ...req.body, userId });
+      const document = await storage.createDocument(validatedData);
+
+      // Log activity
+      await storage.logActivity({
+        userId,
+        action: "Document Created",
+        details: `Created document: ${document.title}`,
+        activityType: "document",
+      });
+
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error creating document:", error);
+      res.status(500).send("Error creating document");
+    }
   });
 
-  // Get documents for a user
-  app.get("/api/documents", (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    const documents = [
-      {
-        id: 1,
-        title: 'Privacy Policy v2.1',
-        status: 'approved',
-        updated: 'Updated 2 days ago',
-        regulation: 'GDPR'
-      },
-      {
-        id: 2,
-        title: 'Data Processing Agreement',
-        status: 'in-review',
-        updated: 'Updated 5 days ago',
-        regulation: 'GDPR'
-      },
-      {
-        id: 3,
-        title: 'CCPA Compliance Report',
-        status: 'approved',
-        updated: 'Updated 1 week ago',
-        regulation: 'CCPA'
-      }
-    ];
-    
-    res.json(documents);
+  app.get("/api/documents/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    const documentId = parseInt(req.params.id);
+
+    try {
+      const document = await storage.getDocumentById(documentId);
+      if (!document) return res.status(404).send("Document not found");
+      if (document.userId !== userId) return res.status(403).send("Unauthorized");
+
+      res.json(document);
+    } catch (error) {
+      console.error("Error fetching document:", error);
+      res.status(500).send("Error fetching document");
+    }
   });
 
-  // Get compliance issues for a user
-  app.get("/api/compliance/issues", (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    const issues = [
-      {
-        id: 1,
-        title: 'Missing consent mechanism for cookies',
-        description: 'Cookie banner needs implementation',
-        regulation: 'GDPR',
-        severity: 'critical',
-        status: 'pending',
-        action: 'Fix',
-        actionLink: '#'
-      },
-      {
-        id: 2,
-        title: 'Incomplete data inventory',
-        description: 'Missing 40% of system data mapping',
-        regulation: 'CCPA',
-        severity: 'high',
-        status: 'in-progress',
-        action: 'Continue',
-        actionLink: '#'
-      },
-      {
-        id: 3,
-        title: 'No data breach response plan',
-        description: 'Required for HIPAA compliance',
-        regulation: 'HIPAA',
-        severity: 'critical',
-        status: 'not-started',
-        action: 'Start',
-        actionLink: '#'
-      },
-      {
-        id: 4,
-        title: 'Privacy notice out of date',
-        description: 'Last updated 11 months ago',
-        regulation: 'GDPR',
-        severity: 'medium',
-        status: 'pending',
-        action: 'Fix',
-        actionLink: '#'
-      }
-    ];
-    
-    res.json(issues);
+  // Deadlines routes
+  app.get("/api/deadlines", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const deadlines = await storage.getDeadlinesByUserId(userId);
+      res.json(deadlines);
+    } catch (error) {
+      console.error("Error fetching deadlines:", error);
+      res.status(500).send("Error fetching deadlines");
+    }
   });
 
-  // Generate a report based on compliance data
-  app.post("/api/compliance/report", (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    // In a real implementation, this would generate a PDF report
-    res.json({ 
-      message: "Report generated", 
-      reportUrl: "/api/downloads/report-12345.pdf" 
-    });
+  app.post("/api/deadlines", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const validatedData = insertDeadlineSchema.parse({ ...req.body, userId });
+      const deadline = await storage.createDeadline(validatedData);
+
+      // Log activity
+      await storage.logActivity({
+        userId,
+        action: "Deadline Created",
+        details: `Created deadline: ${deadline.title}`,
+        activityType: "alert",
+      });
+
+      res.status(201).json(deadline);
+    } catch (error) {
+      console.error("Error creating deadline:", error);
+      res.status(500).send("Error creating deadline");
+    }
+  });
+
+  // Compliance status routes
+  app.get("/api/compliance", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const complianceStatus = await storage.getComplianceStatusByUserId(userId);
+      res.json(complianceStatus);
+    } catch (error) {
+      console.error("Error fetching compliance status:", error);
+      res.status(500).send("Error fetching compliance status");
+    }
+  });
+
+  app.put("/api/compliance/:regulationId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    const regulationId = parseInt(req.params.regulationId);
+
+    try {
+      const validatedData = insertComplianceStatusSchema.parse({ 
+        ...req.body, 
+        userId, 
+        regulationId 
+      });
+      
+      const complianceStatus = await storage.updateComplianceStatus(validatedData);
+
+      // Log activity
+      await storage.logActivity({
+        userId,
+        action: "Compliance Status Updated",
+        details: `Updated compliance status for regulation #${regulationId}`,
+        activityType: "compliance",
+      });
+
+      res.json(complianceStatus);
+    } catch (error) {
+      console.error("Error updating compliance status:", error);
+      res.status(500).send("Error updating compliance status");
+    }
+  });
+
+  // Activity logs
+  app.get("/api/activities", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const activities = await storage.getActivitiesByUserId(userId);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      res.status(500).send("Error fetching activities");
+    }
+  });
+
+  // Generate report
+  app.post("/api/generate-report", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).send("User ID is required");
+
+    try {
+      const complianceStatus = await storage.getComplianceStatusByUserId(userId);
+      const user = await storage.getUser(userId);
+      
+      // Create a report document
+      const reportContent = generateComplianceReport(user, complianceStatus);
+      
+      const document = await storage.createDocument({
+        userId,
+        title: "Compliance Status Report",
+        description: "Automatically generated compliance report",
+        type: "report",
+        content: reportContent,
+        status: "published",
+        pageCount: 5,
+      });
+
+      // Log activity
+      await storage.logActivity({
+        userId,
+        action: "Report Generated",
+        details: "Generated compliance status report",
+        activityType: "document",
+      });
+
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error generating report:", error);
+      res.status(500).send("Error generating report");
+    }
   });
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Helper function to calculate overall compliance score
+function calculateOverallScore(complianceStatuses: any[]): number {
+  if (!complianceStatuses.length) return 0;
+  
+  const totalScore = complianceStatuses.reduce((sum, status) => sum + status.score, 0);
+  return Math.round(totalScore / complianceStatuses.length);
+}
+
+// Helper function to generate a compliance report
+function generateComplianceReport(user: any, complianceStatuses: any[]): string {
+  const timestamp = new Date().toISOString();
+  const overallScore = calculateOverallScore(complianceStatuses);
+  
+  let report = `# Compliance Status Report\n\n`;
+  report += `## Company: ${user.companyName}\n`;
+  report += `## Generated: ${new Date().toLocaleString()}\n`;
+  report += `## Overall Compliance Score: ${overallScore}%\n\n`;
+  
+  report += `## Compliance Status by Regulation\n\n`;
+  
+  complianceStatuses.forEach(status => {
+    report += `### ${status.regulation.name}\n`;
+    report += `- Score: ${status.score}%\n`;
+    report += `- Status: ${status.status}\n`;
+    report += `- Actions needed: ${status.actionsNeeded}\n`;
+    report += `- Last updated: ${new Date(status.lastUpdated).toLocaleString()}\n\n`;
+  });
+  
+  return report;
+}
+
+// Initialize default regulations in the database
+async function initializeDefaultRegulations() {
+  const existingRegulations = await storage.getAllRegulations();
+  
+  if (existingRegulations.length === 0) {
+    // GDPR
+    await storage.createRegulation({
+      name: "GDPR",
+      description: "General Data Protection Regulation - EU data protection and privacy regulation",
+      requirements: [
+        "Data processing registry",
+        "Privacy policy",
+        "User consent management",
+        "Data breach notification procedure",
+        "Data protection impact assessment",
+        "Right to be forgotten implementation",
+        "Data portability support",
+        "Data minimization practices"
+      ],
+    });
+    
+    // CCPA
+    await storage.createRegulation({
+      name: "CCPA",
+      description: "California Consumer Privacy Act - California's data privacy regulation",
+      requirements: [
+        "Privacy notice",
+        "Opt-out mechanism",
+        "Data inventory and mapping",
+        "Consumer rights processes",
+        "Staff training",
+        "Vendor management",
+        "Data security measures",
+        "Record keeping practices"
+      ],
+    });
+    
+    // HIPAA
+    await storage.createRegulation({
+      name: "HIPAA",
+      description: "Health Insurance Portability and Accountability Act - US healthcare data privacy",
+      requirements: [
+        "Security risk assessment",
+        "Privacy policies and procedures",
+        "Security safeguards",
+        "Access controls",
+        "Audit controls",
+        "Integrity controls",
+        "Transmission security",
+        "Business associate agreements"
+      ],
+    });
+  }
 }

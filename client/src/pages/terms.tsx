@@ -1,9 +1,11 @@
 
-import Layout from "@/components/layouts/layout";
+import { PublicNavbar } from "@/components/layouts/public-navbar";
+import { Footer } from "@/components/layouts/footer";
 
 export default function TermsPage() {
   return (
-    <Layout>
+    <div className="min-h-screen flex flex-col">
+      <PublicNavbar />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Terms of Service</h1>
 
@@ -48,6 +50,7 @@ export default function TermsPage() {
           </section>
         </div>
       </div>
-    </Layout>
+      <Footer />
+    </div>
   );
 }

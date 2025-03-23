@@ -1,4 +1,3 @@
-
 import Layout from "@/components/layouts/layout";
 import { ShieldCheck } from "lucide-react";
 
@@ -43,7 +42,7 @@ export default function CaseStudiesPage() {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Case Studies</h1>
-        
+
         <div className="space-y-8">
           {caseStudies.map((study, index) => (
             <div key={index} className="bg-white p-6 rounded-lg shadow-lg">
@@ -58,18 +57,18 @@ export default function CaseStudiesPage() {
                   <p className="text-gray-600">{study.industry}</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <h3 className="font-semibold mb-2">Challenge</h3>
                   <p className="text-gray-600">{study.challenge}</p>
                 </div>
-                
+
                 <div>
                   <h3 className="font-semibold mb-2">Solution</h3>
                   <p className="text-gray-600">{study.solution}</p>
                 </div>
-                
+
                 <div>
                   <h3 className="font-semibold mb-2">Results</h3>
                   <ul className="list-disc list-inside text-gray-600">

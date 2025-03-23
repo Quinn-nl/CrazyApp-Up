@@ -1,4 +1,3 @@
-
 import Layout from "@/components/layouts/layout";
 import { FC } from 'react';
 

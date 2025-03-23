@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Layout } from "@/components/layouts/layout";
+import Layout from "@/components/layouts/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Layout } from "@/components/layouts/layout";
+import Layout from "@/components/layouts/layout";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";

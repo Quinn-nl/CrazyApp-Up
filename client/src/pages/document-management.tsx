@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Layout } from "@/components/layouts/layout";
+import Layout from "@/components/layouts/layout";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";

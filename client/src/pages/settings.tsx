@@ -21,7 +21,8 @@ import {
   CreditCard, 
   Users, 
   Save,
-  UserPlus
+  UserPlus,
+  CheckCheck as Check
 } from "lucide-react";
 
 export default function Settings() {

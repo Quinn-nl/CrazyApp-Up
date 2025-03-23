@@ -6,7 +6,18 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Security headers
 app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
+app.use((req, res, next) => {
+  const correlationId = crypto.randomUUID();
+  req.headers['x-correlation-id'] = correlationId;
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
@@ -42,9 +53,17 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
+    const stack = process.env.NODE_ENV === 'development' ? err.stack : undefined;
 
-    res.status(status).json({ message });
-    throw err;
+    console.error(`[Error] ${status} - ${message}`);
+    if (stack) console.error(stack);
+
+    res.status(status).json({
+      status,
+      message,
+      stack,
+      timestamp: new Date().toISOString()
+    });
   });
 
   // importantly only setup vite in development and after

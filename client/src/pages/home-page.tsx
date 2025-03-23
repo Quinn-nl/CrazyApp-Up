@@ -242,37 +242,37 @@ export default function HomePage() {
             <div>
               <h4 className="text-white font-medium mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Case Studies</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><Link href="/" className="hover:text-white transition-colors">Features</Link></li>
+                <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/case-studies" className="hover:text-white transition-colors">Case Studies</Link></li>
+                <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-medium mb-4">Company</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-medium mb-4">Resources</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Compliance Guides</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Webinars</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
+                <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link href="/guides" className="hover:text-white transition-colors">Compliance Guides</Link></li>
+                <li><Link href="/webinars" className="hover:text-white transition-colors">Webinars</Link></li>
+                <li><Link href="/community" className="hover:text-white transition-colors">Community</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-medium mb-4">Legal</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">GDPR Compliance</a></li>
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link href="/security" className="hover:text-white transition-colors">Security</Link></li>
+                <li><Link href="/gdpr" className="hover:text-white transition-colors">GDPR Compliance</Link></li>
               </ul>
             </div>
           </div>

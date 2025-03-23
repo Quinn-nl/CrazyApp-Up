@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Layout } from "@/components/layouts/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -701,6 +702,65 @@ export default function Settings() {
           </Tabs>
         </div>
       </div>
+      {/* Payment Method Dialog */}
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingPayment ? "Edit Payment Method" : "Add Payment Method"}</DialogTitle>
+            <DialogDescription>
+              {editingPayment 
+                ? "Update your payment information below" 
+                : "Enter your payment card details below"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="cardName">Name on Card</Label>
+              <Input 
+                id="cardName" 
+                placeholder="John Smith" 
+                value={paymentData.cardName}
+                onChange={(e) => setPaymentData({...paymentData, cardName: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cardNumber">Card Number</Label>
+              <Input 
+                id="cardNumber" 
+                placeholder="4242 4242 4242 4242" 
+                value={paymentData.cardNumber}
+                onChange={(e) => setPaymentData({...paymentData, cardNumber: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="expiryDate">Expiry Date</Label>
+                <Input 
+                  id="expiryDate" 
+                  placeholder="MM/YY" 
+                  value={paymentData.expiryDate}
+                  onChange={(e) => setPaymentData({...paymentData, expiryDate: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cvc">CVC</Label>
+                <Input 
+                  id="cvc" 
+                  placeholder="123" 
+                  value={paymentData.cvc}
+                  onChange={(e) => setPaymentData({...paymentData, cvc: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handlePaymentSubmit}>
+              {editingPayment ? "Update Payment Method" : "Add Payment Method"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

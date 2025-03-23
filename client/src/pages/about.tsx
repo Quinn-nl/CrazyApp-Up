@@ -4,7 +4,6 @@ import { PublicNavbar } from "@/components/layouts/public-navbar";
 import { Footer } from "@/components/layouts/footer";
 
 export default function AboutPage() {
-  const content =
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto">

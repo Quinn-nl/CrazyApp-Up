@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { Layout } from "@/components/layouts/layout";
+import Layout from "@/components/layouts/layout";
 import { ComplianceScoreCard } from "@/components/dashboard/compliance-score-card";
 import { ComplianceStatusCard } from "@/components/dashboard/compliance-status-card";
 import { FrameworkCard } from "@/components/dashboard/framework-card";

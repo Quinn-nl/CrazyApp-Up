@@ -1,39 +1,28 @@
 import Layout from "@/components/layouts/layout";
-import { ShieldCheck } from "lucide-react";
+import { Building2, Trophy } from "lucide-react";
 
-interface CaseStudy {
-  company: string;
-  industry: string;
-  challenge: string;
-  solution: string;
-  results: string[];
-  logo: string;
-}
-
-const caseStudies: CaseStudy[] = [
+const caseStudies = [
   {
-    company: "HealthTech Solutions",
-    industry: "Healthcare",
-    challenge: "Needed to achieve HIPAA compliance within 3 months",
-    solution: "Implemented ComplianceMate's automated HIPAA controls and monitoring",
+    company: "TechCorp Solutions",
+    industry: "Software & Technology",
+    challenge: "Needed to achieve SOC 2 compliance quickly for enterprise clients.",
+    solution: "Implemented ComplianceMate's automated compliance monitoring.",
     results: [
-      "Achieved HIPAA compliance in 2 months",
-      "Reduced compliance monitoring time by 70%",
-      "Successfully passed external audit"
-    ],
-    logo: "https://placehold.co/100x100"
+      "Achieved SOC 2 Type II in 4 months",
+      "Reduced compliance overhead by 60%",
+      "Secured 3 enterprise contracts"
+    ]
   },
   {
-    company: "FinanceFlow",
-    industry: "FinTech",
-    challenge: "Complex SOC 2 requirements across multiple products",
-    solution: "Utilized ComplianceMate's compliance automation platform",
+    company: "HealthTech Innovations",
+    industry: "Healthcare",
+    challenge: "Complex HIPAA compliance requirements slowing down development.",
+    solution: "Deployed ComplianceMate's healthcare compliance framework.",
     results: [
-      "SOC 2 Type II certification achieved",
-      "50% reduction in compliance costs",
-      "Automated 80% of evidence collection"
-    ],
-    logo: "https://placehold.co/100x100"
+      "Full HIPAA compliance maintained",
+      "Development velocity increased by 40%",
+      "Passed all external audits"
+    ]
   }
 ];
 
@@ -46,15 +35,14 @@ export default function CaseStudiesPage() {
         <div className="space-y-8">
           {caseStudies.map((study, index) => (
             <div key={index} className="bg-white p-6 rounded-lg shadow-lg">
-              <div className="flex items-center mb-6">
-                <img
-                  src={study.logo}
-                  alt={`${study.company} logo`}
-                  className="w-16 h-16 rounded-full"
-                />
-                <div className="ml-4">
-                  <h2 className="text-2xl font-semibold">{study.company}</h2>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-semibold mb-2">{study.company}</h2>
                   <p className="text-gray-600">{study.industry}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Building2 className="h-6 w-6 text-primary" />
+                  <Trophy className="h-6 w-6 text-yellow-500" />
                 </div>
               </div>
 

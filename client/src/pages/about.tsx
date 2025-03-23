@@ -1,7 +1,10 @@
 
 import { Shield, Users, BarChart } from "lucide-react";
+import { PublicNavbar } from "@/components/layouts/public-navbar";
+import { Footer } from "@/components/layouts/footer";
 
 export default function AboutPage() {
+  const content =
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto">
@@ -47,18 +50,10 @@ export default function AboutPage() {
         </button>
       </div>
     </div>
-  );
-}
-import { PublicNavbar } from "@/components/layouts/public-navbar";
-import { Footer } from "@/components/layouts/footer";
-
-export default function AboutPage() {
-  return (
-    <div className="min-h-screen flex flex-col">
+  <div className="min-h-screen flex flex-col">
       <PublicNavbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8">About Us</h1>
-        <p>Coming soon...</p>
+      <main className="flex-grow">
+        {content}
       </main>
       <Footer />
     </div>

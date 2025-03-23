@@ -64,6 +64,14 @@ export default function Settings() {
 
   // Billing settings
   const [billingPlan, setBillingPlan] = useState("standard");
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiryDate: "",
+    cvc: ""
+  });
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -124,6 +132,59 @@ export default function Settings() {
     toast({
       title: "Billing plan updated",
       description: `Your plan has been updated to ${billingPlan.charAt(0).toUpperCase() + billingPlan.slice(1)}.`,
+    });
+  };
+  
+  const handleAddPayment = () => {
+    setEditingPayment(false);
+    setPaymentData({
+      cardNumber: "",
+      cardName: "",
+      expiryDate: "",
+      cvc: ""
+    });
+    setPaymentDialogOpen(true);
+  };
+  
+  const handleEditPayment = () => {
+    setEditingPayment(true);
+    setPaymentData({
+      cardNumber: "4242424242424242",
+      cardName: "Your Name",
+      expiryDate: "12/25",
+      cvc: "123"
+    });
+    setPaymentDialogOpen(true);
+  };
+  
+  const handlePaymentSubmit = () => {
+    // Validate payment info
+    if (!paymentData.cardNumber || !paymentData.cardName || !paymentData.expiryDate || !paymentData.cvc) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all payment fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Basic validation
+    if (paymentData.cardNumber.replace(/\s/g, '').length !== 16) {
+      toast({
+        title: "Invalid card number",
+        description: "Please enter a valid 16-digit card number",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setPaymentDialogOpen(false);
+    
+    toast({
+      title: editingPayment ? "Payment method updated" : "Payment method added",
+      description: editingPayment 
+        ? "Your payment method has been updated successfully." 
+        : "Your new payment method has been added successfully.",
     });
   };
 
@@ -613,11 +674,11 @@ export default function Settings() {
                             </div>
                           </div>
                           <div>
-                            <Button variant="outline" size="sm">Edit</Button>
+                            <Button variant="outline" size="sm" onClick={handleEditPayment}>Edit</Button>
                           </div>
                         </div>
                         <div className="border border-dashed rounded-md p-4 flex items-center justify-center">
-                          <Button variant="outline">
+                          <Button variant="outline" onClick={handleAddPayment}>
                             <CreditCard className="mr-2 h-4 w-4" />
                             Add Payment Method
                           </Button>

@@ -46,3 +46,18 @@ export default function BlogPage() {
     </div>
   );
 }
+import { PublicNavbar } from "@/components/layouts/public-navbar";
+import { Footer } from "@/components/layouts/footer";
+
+export default function BlogPage() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <PublicNavbar />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8">Blog</h1>
+        <p>Coming soon...</p>
+      </main>
+      <Footer />
+    </div>
+  );
+}

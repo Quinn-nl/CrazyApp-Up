@@ -1,6 +1,5 @@
-
 import { ShieldCheck } from "lucide-react";
-import Link from "next/link";
+import { Link } from "wouter";
 
 export function Footer() {
   return (
